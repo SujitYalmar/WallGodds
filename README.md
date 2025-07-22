@@ -36,8 +36,8 @@
 ## 🔧 Tech Stack  
 
 - **Frontend**: React (with Vite for faster builds)  
-- **Backend**: Node.js with Express.js  
-- **Database**: MongoDB  
+- **Backend**: Firebase  
+- **Database**: Firebase DB 
 
 This stack ensures a seamless, scalable, and highly performant platform for users and contributors.
 
