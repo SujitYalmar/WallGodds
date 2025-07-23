@@ -14,7 +14,7 @@ Welcome to the **Wallpaper Contribution Guide** for **WallGodds**! This document
 2. **Naming Convention**  
    - Name your file using the format:  
      ```
-     [YourName]_[PullRequestNumber].jpg
+     [YourName]_[WallpaperName].jpg
      ```
      Example: `JaneDoe_101.jpg`  
 
