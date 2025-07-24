@@ -112,6 +112,11 @@ Add your wallpapers here 👇
   - **Category**: Mobile
 
 
+## 12. [harsh]_[dawn].jpg 
+  - **Title**: Morning Twilight.  
+  - **Description**: It's that moment between night and day, when the moon still shines clearly, and the sun has not yet risen but its light begins to paint the sky.  
+  - **Designer**: harsh kumar.
+  - **Category**: Desktop
 
 WallGodds values creativity and collaboration. We can't wait to see your contributions! If you have any questions or need help, feel free to connect with our community on [Discord](https://discord.gg/kTQ5KWANp8).  
 
