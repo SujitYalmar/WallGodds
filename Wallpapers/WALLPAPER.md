@@ -118,6 +118,32 @@ Add your wallpapers here 👇
   - **Designer**: harsh kumar.
   - **Category**: Desktop
 
+##  13. [harsh]_[spacecity].png
+- **Title**: Galactic Skyline
+- **Description**: A dreamy cityscape under a starry sky, where Saturn-like rings float among constellations—capturing the quiet magic of a cosmic night.
+- **Designer**: Harsh Kumar
+- **Category**: Desktop
+
+## 14. [harsh]_[pastelvalley].png
+- **Title**: Pastel Horizon
+- **Description**: A peaceful view of green meadows, distant hills, and soft pink skies, evoking the calm of an early countryside evening.
+- **Designer**: Harsh Kumar
+Category: Desktop
+
+## 15. [harsh]_[lavendersky].png
+- **Title**: Lavender Breeze
+- **Description**: Gentle lavender fields meet a bright blue sky scattered with fluffy white clouds—painting a scene of natural calm and grace.
+- **Designer**: Harsh Kumar
+- **Category**: Desktop
+
+## 16. [harsh]_[sunnygarden].png
+- **Title**: Midday Bloom
+- **Description**: A vibrant garden bursting with summer flowers under a radiant blue sky dotted with glowing clouds—pure daytime joy.
+- **Designer**: Harsh Kumar
+- **Category**: Desktop
+
+
+
 WallGodds values creativity and collaboration. We can't wait to see your contributions! If you have any questions or need help, feel free to connect with our community on [Discord](https://discord.gg/kTQ5KWANp8).  
 
 🌟 *Let’s design something inspiring together!*
