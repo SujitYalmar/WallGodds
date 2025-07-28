@@ -33,7 +33,7 @@ jobs:
         working-directory: ./Frontend
         run: npm run build
         
-      - name: Create or Update PR Preview Service
+              - name: Create or Update PR Preview Service
         id: deploy
         run: |
           SERVICE_NAME="wallgodds-pr-${{ github.event.number }}"
@@ -54,25 +54,43 @@ jobs:
           
           if [ -z "$EXISTING_SERVICE" ]; then
             echo "Creating new Render service..."
+            
+            # Create JSON payload properly
+            JSON_PAYLOAD=$(jq -n \
+              --arg type "static_site" \
+              --arg name "$SERVICE_NAME" \
+              --arg repo "$REPO_URL" \
+              --arg branch "$BRANCH_NAME" \
+              --arg rootDir "./Frontend" \
+              --arg buildCommand "npm ci && npm run build" \
+              --arg publishPath "./dist" \
+              '{
+                type: $type,
+                name: $name,
+                repo: $repo,
+                branch: $branch,
+                rootDir: $rootDir,
+                buildCommand: $buildCommand,
+                publishPath: $publishPath,
+                pullRequestPreviewsEnabled: false,
+                autoDeploy: true
+              }')
+            
+            echo "Sending payload:"
+            echo "$JSON_PAYLOAD"
+            
             CREATE_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
               -H "Content-Type: application/json" \
-              -d '{
-                "type": "static_site",
-                "name": "'$SERVICE_NAME'",
-                "repo": "'$REPO_URL'",
-                "branch": "'$BRANCH_NAME'",
-                "rootDir": "./Frontend",
-                "buildCommand": "npm ci && npm run build",
-                "publishPath": "./dist",
-                "pullRequestPreviewsEnabled": false,
-                "autoDeploy": true
-              }')
+              -d "$JSON_PAYLOAD")
+            
+            echo "Response from Render:"
+            echo "$CREATE_RESPONSE"
             
             SERVICE_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id // empty')
             
-            if [ -z "$SERVICE_ID" ]; then
-              echo "Failed to create service. Response:"
+            if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
+              echo "Failed to create service. Full response:"
               echo "$CREATE_RESPONSE"
               exit 1
             fi
@@ -89,12 +107,12 @@ jobs:
             
             # Trigger a new deployment
             echo "Triggering new deployment..."
-            curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+            DEPLOY_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
               -H "Content-Type: application/json" \
-              -d '{
-                "clearCache": false
-              }'
+              -d '{"clearCache": false}')
+              
+            echo "Deploy response: $DEPLOY_RESPONSE"
           fi
           
           # Get service details and URL
@@ -102,9 +120,12 @@ jobs:
           SERVICE_DETAILS=$(curl -s -X GET "https://api.render.com/v1/services/$SERVICE_ID" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
           
+          echo "Service details response:"
+          echo "$SERVICE_DETAILS"
+          
           SERVICE_URL=$(echo "$SERVICE_DETAILS" | jq -r '.serviceDetails.url // empty')
           
-          if [ -z "$SERVICE_URL" ]; then
+          if [ -z "$SERVICE_URL" ] || [ "$SERVICE_URL" = "null" ]; then
             # Fallback: construct URL from service name
             SERVICE_URL="https://$SERVICE_NAME.onrender.com"
             echo "Using constructed URL: $SERVICE_URL"
