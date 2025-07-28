@@ -1,8 +1,6 @@
-* {
-    overflow: visible !important;
-}
+/* about us section  */
 
-/* html,
+html,
 body,
 #root {
     margin: 0;
@@ -10,8 +8,15 @@ body,
     height: 100%;
     display: flex;
     flex-direction: column;
-} */
+}
 
+#root,
+#app {
+    /* Applies if using React with root/app div */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Full viewport height */
+}
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
@@ -26,6 +31,15 @@ body {
 
 ::-webkit-scrollbar {
     width: 8px;
+}
+
+.aboutUsContainer {
+    overflow-y: auto; /* Enables vertical scrolling */
+    max-height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
 }
 
 .container {
@@ -51,6 +65,8 @@ body {
 }
 
 .description {
+    width: 1696px;
+    height: 272px;
     font-family: "Inter", sans-serif !important;
     font-weight: 400;
     font-size: 21px;
@@ -64,6 +80,8 @@ body {
     max-width: 1200px;
     box-sizing: border-box;
     margin: 0 auto;
+
+    border-radius: 10px;
 }
 
 .section {
@@ -76,6 +94,7 @@ body {
     padding: 60px 40px;
     box-sizing: border-box;
     margin-left: 100px;
+
     margin-bottom: 20px;
 }
 
@@ -138,7 +157,6 @@ body {
     margin: 0 10px;
     margin-bottom: 60px;
 }
-
 .icon img {
     width: 37px;
     height: 37px;
@@ -146,13 +164,21 @@ body {
 }
 
 .footerContainer {
-    background-color: #a9a0e0;
+    background-color: #a9a0e0; /* Adjust to match the background */
     color: black;
     padding: 20px 0;
     text-align: center;
     position: relative;
     font-family: "Arial", sans-serif;
     z-index: 1000;
+    margin-top: 1900px;
+}
+
+footer {
+    position: relative;
+    bottom: 0;
+    left: 0;
+    width: 100%;
 }
 
 .footer-right-elements {
@@ -169,13 +195,13 @@ body {
     display: flex;
     align-items: center;
 }
-
 .footerContent {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
     padding-top: 20px;
+    /* max-width:1200px; */
 }
 
 .rightsReservedText {
@@ -185,13 +211,13 @@ body {
     text-align: left;
     margin-bottom: 80px;
     margin-left: 50px;
+
     font-family: Arial;
     font-weight: 400;
     font-size: 18px;
     line-height: 100%;
     letter-spacing: 0%;
 }
-
 .footer-content a {
     color: black;
     text-decoration: none;
@@ -201,16 +227,15 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
-    display: flex;
-    align-items: center;
-    gap: 670px;
+    display: flex; /* Enable flexbox */
+    align-items: center; /* Vertically align items in the center */
+    gap: 670px; /* Add spacing between the items */
     font-size: 0.9em;
     color: black;
     justify-content: space-between;
 }
-
 .knowMore {
-    display: flex;
+    display: flex; /* To align text and icon within "Know more" */
     align-items: center;
     gap: 5px;
     padding-top: 23px;
@@ -223,20 +248,21 @@ body {
 }
 
 .knowMore a {
-    text-decoration: none;
-    color: inherit;
-    display: flex;
+    text-decoration: none; /* Remove underline if desired */
+    color: inherit; /* Inherit text color */
+    display: flex; /* To align text and icon within the link */
     align-items: center;
-    gap: 5px;
+
+    gap: 5px; /* Adjust spacing between text and icon */
 }
 
 .githubIcon {
     padding-top: 23px;
 }
-
 .githubIcon a {
     color: black;
     font-size: 24px;
+
     margin-right: 55px;
 }
 
@@ -245,7 +271,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: -20px;
+    margin-top: -20px; /* Move image upwards */
 }
 
 .letsWorkTogetherImage {
@@ -253,15 +279,16 @@ body {
     height: auto;
     margin-bottom: -20px;
 }
-
 .circle {
     position: absolute;
-    width: 500px;
-    height: 200px;
+    width: 500px; /* Or your desired wider width */
+    height: 200px; /* Adjust the height to control the vertical stretch */
     background-color: pink;
-    border-radius: 50% / 100% 100% 0 0;
+    border-radius: 50% / 100% 100% 0 0; /* Horizontal radius (half of width) */
+
     z-index: -1;
     left: 50%;
+
     bottom: -19px;
     transform: translateX(-50%);
 }
