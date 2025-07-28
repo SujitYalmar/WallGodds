@@ -28,25 +28,44 @@ jobs:
       - name: Build project
         working-directory: ./Frontend
         run: npm run build
+        
+      - name: Deploy to Render (Manual Deploy)
+        id: deploy
+        run: |
+          # Create a manual deploy to your existing service with the PR branch
+          RESPONSE=$(curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "clearCache": false,
+              "gitCommitSHA": "${{ github.event.pull_request.head.sha }}"
+            }')
           
-      - name: Deploy to Render
-        uses: johnbeynon/render-deploy-action@v0.0.8
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
+          DEPLOY_ID=$(echo $RESPONSE | jq -r '.id')
+          echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_OUTPUT
           
-      - name: Comment PR or Save URL
+          # Get your service URL
+          SERVICE_URL=$(curl -s -X GET "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" | jq -r '.serviceDetails.url')
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+          
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for deployment to complete..."
+          sleep 60
+          
+      - name: Comment PR
         if: success()
         run: |
+          PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
+          
           if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
-            # Same repo - can comment directly
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
-              -d '{"body":"🚀 PR Preview deployed! Check it out at: https://wallgodds-pr-${{ github.event.number }}.onrender.com"}'
+              -d "{\"body\":\"🚀 PR Preview deployed! Check it out at: $PREVIEW_URL\\n\\n⚠️ Note: This temporarily replaces the main site until the next main branch deploy.\"}"
           else
-            # Fork PR - just echo the URL
-            echo "🚀 PR Preview deployed at: https://wallgodds-pr-${{ github.event.number }}.onrender.com"
-            echo "Preview URL: https://wallgodds-pr-${{ github.event.number }}.onrender.com" >> $GITHUB_STEP_SUMMARY
+            echo "🚀 PR Preview deployed at: $PREVIEW_URL"
+            echo "Preview URL: $PREVIEW_URL" >> $GITHUB_STEP_SUMMARY
           fi
