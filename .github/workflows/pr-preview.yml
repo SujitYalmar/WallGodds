@@ -17,10 +17,10 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm i
+        run: npm ci
         
       - name: Build project
-        run: npx vite build
+        run: npm run build
           
       - name: Deploy to Render
         uses: johnbeynon/render-deploy-action@v0.0.8
