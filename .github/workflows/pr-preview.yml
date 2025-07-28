@@ -1,10 +1,11 @@
 name: Deploy PR Preview
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   deploy-preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -13,6 +14,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,43 +33,179 @@ jobs:
         working-directory: ./Frontend
         run: npm run build
         
-      - name: Deploy to Render (Manual Deploy)
+      - name: Create or Update PR Preview Service
         id: deploy
         run: |
-          # Create a manual deploy to your existing service with the PR branch
-          RESPONSE=$(curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+          SERVICE_NAME="wallgodds-pr-${{ github.event.number }}"
+          REPO_URL="https://github.com/${{ github.repository }}"
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          
+          echo "Creating/updating preview service: $SERVICE_NAME"
+          echo "Repository: $REPO_URL"
+          echo "Branch: $BRANCH_NAME"
+          
+          # Check if service already exists
+          echo "Checking for existing service..."
+          SERVICES_RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "clearCache": false,
-              "gitCommitSHA": "${{ github.event.pull_request.head.sha }}"
-            }')
+            -H "Accept: application/json")
           
-          DEPLOY_ID=$(echo $RESPONSE | jq -r '.id')
-          echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_OUTPUT
+          EXISTING_SERVICE=$(echo "$SERVICES_RESPONSE" | jq -r --arg name "$SERVICE_NAME" '.[] | select(.name == $name) | .id // empty')
           
-          # Get your service URL
-          SERVICE_URL=$(curl -s -X GET "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" | jq -r '.serviceDetails.url')
+          if [ -z "$EXISTING_SERVICE" ]; then
+            echo "Creating new Render service..."
+            CREATE_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "type": "static_site",
+                "name": "'$SERVICE_NAME'",
+                "repo": "'$REPO_URL'",
+                "branch": "'$BRANCH_NAME'",
+                "rootDir": "./Frontend",
+                "buildCommand": "npm ci && npm run build",
+                "publishPath": "./dist",
+                "pullRequestPreviewsEnabled": false,
+                "autoDeploy": true
+              }')
+            
+            SERVICE_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id // empty')
+            
+            if [ -z "$SERVICE_ID" ]; then
+              echo "Failed to create service. Response:"
+              echo "$CREATE_RESPONSE"
+              exit 1
+            fi
+            
+            echo "Created service with ID: $SERVICE_ID"
+            
+            # Wait for service to be ready and get URL
+            echo "Waiting for service to initialize..."
+            sleep 30
+            
+          else
+            echo "Found existing service: $EXISTING_SERVICE"
+            SERVICE_ID="$EXISTING_SERVICE"
+            
+            # Trigger a new deployment
+            echo "Triggering new deployment..."
+            curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "clearCache": false
+              }'
+          fi
+          
+          # Get service details and URL
+          echo "Getting service details..."
+          SERVICE_DETAILS=$(curl -s -X GET "https://api.render.com/v1/services/$SERVICE_ID" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+          
+          SERVICE_URL=$(echo "$SERVICE_DETAILS" | jq -r '.serviceDetails.url // empty')
+          
+          if [ -z "$SERVICE_URL" ]; then
+            # Fallback: construct URL from service name
+            SERVICE_URL="https://$SERVICE_NAME.onrender.com"
+            echo "Using constructed URL: $SERVICE_URL"
+          else
+            echo "Got service URL: $SERVICE_URL"
+          fi
+          
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "SERVICE_ID=$SERVICE_ID" >> $GITHUB_OUTPUT
           
-      - name: Wait for deployment
+      - name: Wait for deployment to complete
         run: |
           echo "Waiting for deployment to complete..."
-          sleep 60
+          sleep 90
           
-      - name: Comment PR
+          # Check if the URL is accessible
+          PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
+          echo "Checking if $PREVIEW_URL is accessible..."
+          
+          for i in {1..10}; do
+            if curl -s --head "$PREVIEW_URL" | head -n 1 | grep -q "200 OK"; then
+              echo "✅ Preview site is live!"
+              break
+            else
+              echo "⏳ Waiting for site to be ready... (attempt $i/10)"
+              sleep 15
+            fi
+          done
+          
+      - name: Comment on PR
         if: success()
         run: |
           PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
+          SERVICE_ID="${{ steps.deploy.outputs.SERVICE_ID }}"
+          
+          COMMENT_BODY="🚀 **PR Preview Deployed Successfully!**
+
+          📱 **Preview URL:** $PREVIEW_URL
+          🔧 **Service ID:** \`$SERVICE_ID\`
+          🌿 **Branch:** \`${{ github.event.pull_request.head.ref }}\`
+          
+          This is a separate preview deployment that won't affect the main site.
+          
+          ---
+          ⚡ The preview will be automatically deleted when this PR is closed."
           
           if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
-              -d "{\"body\":\"🚀 PR Preview deployed! Check it out at: $PREVIEW_URL\\n\\n⚠️ Note: This temporarily replaces the main site until the next main branch deploy.\"}"
+              -d "{\"body\":$(echo "$COMMENT_BODY" | jq -Rs .)}"
           else
-            echo "🚀 PR Preview deployed at: $PREVIEW_URL"
+            echo "$COMMENT_BODY"
             echo "Preview URL: $PREVIEW_URL" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+        
+      - name: Delete Preview Service
+        run: |
+          SERVICE_NAME="wallgodds-pr-${{ github.event.number }}"
+          
+          echo "Looking for service to delete: $SERVICE_NAME"
+          
+          # Find the service
+          SERVICES_RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json")
+          
+          SERVICE_ID=$(echo "$SERVICES_RESPONSE" | jq -r --arg name "$SERVICE_NAME" '.[] | select(.name == $name) | .id // empty')
+          
+          if [ ! -z "$SERVICE_ID" ]; then
+            echo "Deleting Render service: $SERVICE_NAME (ID: $SERVICE_ID)"
+            DELETE_RESPONSE=$(curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
+              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
+            echo "✅ Preview service deleted successfully!"
+          else
+            echo "ℹ️ No preview service found to delete for PR ${{ github.event.number }}"
+          fi
+          
+      - name: Comment cleanup completion
+        run: |
+          COMMENT_BODY="🧹 **Preview Environment Cleaned Up**
+          
+          The preview deployment for this PR has been automatically deleted.
+          
+          Thank you for contributing! 🎉"
+          
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
+            curl -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
+              -d "{\"body\":$(echo "$COMMENT_BODY" | jq -Rs .)}"
           fi
