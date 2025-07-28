@@ -1,272 +1,164 @@
-.dev {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 40px 0 40px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
-    margin-top: 80%;
+* {
+    overflow: visible !important;
 }
 
-.dev h1 {
-    font-size: 36px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
-    text-align: center;
-}
-
-.dev p {
-    font-size: 18px;
-    margin-bottom: 30px;
-    color: #666;
-    text-align: center;
-}
-
-.dev ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    text-align: center;
-}
-
-.dev li {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.dev a {
-    text-decoration: none;
-    color: #337ab7;
-    transition: color 0.2s ease;
-}
-
-.dev a:hover {
-    color: #23527c;
-}
-
-.dev a::before {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 2px;
-    background-color: #337ab7;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    transform: scaleX(0);
-    transition: transform 0.2s ease;
-}
-
-.dev a:hover::before {
-    transform: scaleX(1);
-}
-
-/* about us section  */
-*{
- overflow: visible !important;
-}
-
-html,
+/* html,
 body,
 #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-
-#root, #app {  /* Applies if using React with root/app div */
+    margin: 0;
+    padding: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Full viewport height */
-}
+} */
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-    "Helvetica Neue", sans-serif;
-  background-color: #f8f9fa;
-  color: #333;
-  display: flex; 
-  flex-direction: column;
- overflow-y : auto;
- height: 100%;
- min-height: 90px;
-  
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100%;
+    min-height: 90px;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
-
-.aboutUsContainer {
-    overflow-y: auto;  /* Enables vertical scrolling */
-    max-height: 100vh; 
-    min-height: 100vh;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-}
-
 
 .container {
     min-height: 100vh;
-   flex: 1;
-   flex-direction: column;
-  width: 100%;
-  max-width: 2000px;
-  margin: 0 auto;
-  padding: 20px;
-  padding-top: 100px; 
-  font-family: 'Arial', sans-serif;
-  color: #333;
-  margin-bottom: 100px;
-  padding-bottom: 200px;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    max-width: 2000px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-top: 100px;
+    font-family: "Arial", sans-serif;
+    color: #333;
+    margin-bottom: 100px;
+    padding-bottom: 200px;
 }
 
 .title {
-  font-size: 2em;
-  color: #4a4aef;
-  text-align: center;
-  margin-bottom: 20px;
+    font-size: 2em;
+    color: #4a4aef;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .description {
-  width: 1696px;
-  height: 272px;
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 400;
-  font-size: 21px;
-  line-height: 140%;
-  letter-spacing: 0%;
-  text-align: justify;
-  padding: 20px;
-  color: #808080;
-  border-radius: 10px; 
-   width: 100%;
-   max-width: 1200px; 
-   box-sizing: border-box;
-   margin: 0 auto;
- 
-   border-radius: 10px;
+    font-family: "Inter", sans-serif !important;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 140%;
+    letter-spacing: 0%;
+    text-align: justify;
+    padding: 20px;
+    color: #808080;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1200px;
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .section {
-  display: flex;
-  flex-direction: row;
-  align-items: left;
-  justify-content: left;
-  flex-wrap: wrap; 
-  gap: 40px;
-  padding: 60px 40px;
-  box-sizing: border-box;
- margin-left: 100px;
-  
-    margin-bottom: 20px; 
-  
-  
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+    justify-content: left;
+    flex-wrap: wrap;
+    gap: 40px;
+    padding: 60px 40px;
+    box-sizing: border-box;
+    margin-left: 100px;
+    margin-bottom: 20px;
 }
 
 .section.reverse {
-  flex-direction: row-reverse;
+    flex-direction: row-reverse;
 }
 
 .image {
-  width: 550px;
-  max-width: 100%;
-  height: auto;
-  border-radius: 20px;
-  flex-shrink: 0;
+    width: 550px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    flex-shrink: 0;
 }
 
 .textContainer {
-  flex: 1;
-  min-width: 400px;
-  max-width: 600px;
-  
+    flex: 1;
+    min-width: 400px;
+    max-width: 600px;
 }
 
 .subtitle {
-  font-size: 1.5em;
-  color: #6a6aef;
-  margin-bottom: 10px;
+    font-size: 1.5em;
+    color: #6a6aef;
+    margin-bottom: 10px;
 }
 
 .text {
-  font-size: 17px;
-  line-height: 1.5;
-  color: #808080;
-  margin-top: 20px;
-  text-align: justify;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #808080;
+    margin-top: 20px;
+    text-align: justify;
 }
 
 .joinTitle {
-  font-family: 'Comfortaa', cursive;
-  font-weight: 900;
-  font-size: 60px;
-  line-height: -200px;
-  text-align: center;
-margin-top:50px;
-  background: linear-gradient(90deg, #2A00FF 0%, #FF5959 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
+    font-family: "Comfortaa", cursive;
+    font-weight: 900;
+    font-size: 60px;
+    line-height: -200px;
+    text-align: center;
+    margin-top: 50px;
+    background: linear-gradient(90deg, #2a00ff 0%, #ff5959 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .socialIcons {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 100px;
-  align-items: center;
-  gap: 60px; 
-  width: 456px;
-  height: 72px;
-  margin: 40px auto; 
- 
+    display: flex;
+    justify-content: center;
+    margin-bottom: 100px;
+    align-items: center;
+    gap: 60px;
+    width: 456px;
+    height: 72px;
+    margin: 40px auto;
 }
 
 .icon {
-  margin: 0 10px;
-  margin-bottom: 60px;
-}
-.icon img {
-  width: 37px;  
-  height: 37px;
-  object-fit: contain;
+    margin: 0 10px;
+    margin-bottom: 60px;
 }
 
+.icon img {
+    width: 37px;
+    height: 37px;
+    object-fit: contain;
+}
 
 .footerContainer {
-    background-color: #A9A0E0; /* Adjust to match the background */
+    background-color: #a9a0e0;
     color: black;
     padding: 20px 0;
     text-align: center;
     position: relative;
-    font-family: 'Arial', sans-serif;
+    font-family: "Arial", sans-serif;
     z-index: 1000;
-    margin-top: 1900px;
- 
-   
-}
-
-footer {
-    position: relative;
-    bottom: 0;
-    left: 0;
-    width: 100%;
 }
 
 .footer-right-elements {
-  display: flex; 
-  align-items: center; 
-  column-gap: 20px;
- 
-   
+    display: flex;
+    align-items: center;
+    column-gap: 20px;
 }
 
 .footer-links a {
@@ -277,79 +169,74 @@ footer {
     display: flex;
     align-items: center;
 }
+
 .footerContent {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
     padding-top: 20px;
-    /* max-width:1200px; */
-   
-  
 }
 
-.rightsReservedText{
+.rightsReservedText {
     font-size: 14px;
     font-weight: bold;
     flex: 1;
     text-align: left;
     margin-bottom: 80px;
     margin-left: 50px;
- 
     font-family: Arial;
-font-weight: 400;
-font-size: 18px;
-line-height: 100%;
-letter-spacing: 0%;
-
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
 }
+
 .footer-content a {
-  color: black; 
-  text-decoration: none;
+    color: black;
+    text-decoration: none;
 }
 
 .footerLinks {
     position: absolute;
     top: 10px;
     right: 10px;
-    display: flex; /* Enable flexbox */
-    align-items: center; /* Vertically align items in the center */
-    gap: 670px; /* Add spacing between the items */
+    display: flex;
+    align-items: center;
+    gap: 670px;
     font-size: 0.9em;
     color: black;
     justify-content: space-between;
 }
+
 .knowMore {
-    display: flex; /* To align text and icon within "Know more" */
+    display: flex;
     align-items: center;
     gap: 5px;
-   padding-top: 23px;
+    padding-top: 23px;
     font-family: Arial;
-font-weight: 400;
-font-size: 18px;
-line-height: 100%;
-letter-spacing: 0%;
-margin-right: -45px;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    margin-right: -45px;
+}
 
-  }
-  
-  .knowMore a {
-    text-decoration: none; /* Remove underline if desired */
-    color: inherit; /* Inherit text color */
-    display: flex; /* To align text and icon within the link */
+.knowMore a {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
     align-items: center;
-   
-    gap: 5px; /* Adjust spacing between text and icon */
-  }
+    gap: 5px;
+}
 
-  .githubIcon{
-padding-top: 23px;
+.githubIcon {
+    padding-top: 23px;
+}
 
-  }
-.githubIcon a{
+.githubIcon a {
     color: black;
     font-size: 24px;
-    
     margin-right: 55px;
 }
 
@@ -358,57 +245,52 @@ padding-top: 23px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: -20px; /* Move image upwards */
+    margin-top: -20px;
 }
 
-
-
-.letsWorkTogetherImage{
+.letsWorkTogetherImage {
     max-width: 90%;
     height: auto;
-   margin-bottom:-20px;
-
-
+    margin-bottom: -20px;
 }
+
 .circle {
     position: absolute;
-    width: 500px; /* Or your desired wider width */
-    height: 200px; /* Adjust the height to control the vertical stretch */
+    width: 500px;
+    height: 200px;
     background-color: pink;
-    border-radius: 50% / 100% 100% 0 0; /* Horizontal radius (half of width) */
-    
+    border-radius: 50% / 100% 100% 0 0;
     z-index: -1;
     left: 50%;
-   
     bottom: -19px;
     transform: translateX(-50%);
 }
 
 .gradientHeading {
-  font-family: 'Comfortaa', sans-serif;
-  font-weight: 400;
-  font-size: 36px;
-  line-height: 36px;
-  text-align: center;
-  background: linear-gradient(90deg, #2A00FF 0%, #FF5959 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-top: 50px;
+    font-family: "Comfortaa", sans-serif;
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 36px;
+    text-align: center;
+    background: linear-gradient(90deg, #2a00ff 0%, #ff5959 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 50px;
 }
 
 .headingGradient {
-  width: 866px;
-  height: 40px;
-  font-family: 'Comfortaa', cursive;
-  font-weight: 600;
-  font-size: 36px;
-  line-height: 100%;
-  letter-spacing: 0%;
-  text-align: left;
-  margin: 0 auto;
-  margin-left: 160px; 
-  margin-top: 0px;
-  background: linear-gradient(90deg, #2A00FF 0%, #FF5959 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    width: 866px;
+    height: 40px;
+    font-family: "Comfortaa", cursive;
+    font-weight: 600;
+    font-size: 36px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: left;
+    margin: 0 auto;
+    margin-left: 160px;
+    margin-top: 0px;
+    background: linear-gradient(90deg, #2a00ff 0%, #ff5959 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
