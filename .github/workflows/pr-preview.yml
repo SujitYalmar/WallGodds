@@ -2,7 +2,7 @@ name: Deploy PR Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
     inputs:
       pr_number:
         description: 'PR number to deploy'
@@ -39,7 +39,10 @@ jobs:
         working-directory: ./Frontend
         run: npm run build
         
-              - name: Create or Update PR Preview Service
+      - name: Install Surge CLI
+        run: npm install -g surge
+        
+      - name: Deploy to Surge.sh
         id: deploy
         run: |
           # Handle manual dispatch vs PR event
@@ -50,131 +53,37 @@ jobs:
               echo "Error: PR number required for manual dispatch"
               exit 1
             fi
-            # Get PR info from API
-            PR_INFO=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER")
-            BRANCH_NAME=$(echo "$PR_INFO" | jq -r '.head.ref')
           else
             PR_NUMBER="${{ github.event.number }}"
-            BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           fi
           
-          SERVICE_NAME="wallgodds-pr-$PR_NUMBER"
-          REPO_URL="https://github.com/${{ github.repository }}"
+          DOMAIN="wallgodds-pr-$PR_NUMBER.surge.sh"
           
-          echo "Creating/updating preview service: $SERVICE_NAME"
-          echo "Repository: $REPO_URL"
-          echo "Branch: $BRANCH_NAME"
-          echo "PR Number: $PR_NUMBER"
+          echo "Deploying to Surge domain: $DOMAIN"
           
-          # Check if service already exists
-          echo "Checking for existing service..."
-          SERVICES_RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Accept: application/json")
+          # Deploy to Surge
+          cd Frontend/dist
+          echo "$DOMAIN" > CNAME
+          surge ./ "$DOMAIN" --token "${{ secrets.SURGE_TOKEN }}"
           
-          EXISTING_SERVICE=$(echo "$SERVICES_RESPONSE" | jq -r --arg name "$SERVICE_NAME" '.[] | select(.name == $name) | .id // empty')
+          PREVIEW_URL="https://$DOMAIN"
+          echo "SERVICE_URL=$PREVIEW_URL" >> $GITHUB_OUTPUT
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT
           
-          if [ -z "$EXISTING_SERVICE" ]; then
-            echo "Creating new Render service..."
-            
-            # Create JSON payload properly
-            JSON_PAYLOAD=$(jq -n \
-              --arg type "static_site" \
-              --arg name "$SERVICE_NAME" \
-              --arg repo "$REPO_URL" \
-              --arg branch "$BRANCH_NAME" \
-              --arg rootDir "./Frontend" \
-              --arg buildCommand "npm ci && npm run build" \
-              --arg publishPath "./dist" \
-              '{
-                type: $type,
-                name: $name,
-                repo: $repo,
-                branch: $branch,
-                rootDir: $rootDir,
-                buildCommand: $buildCommand,
-                publishPath: $publishPath,
-                pullRequestPreviewsEnabled: false,
-                autoDeploy: true
-              }')
-            
-            echo "Sending payload:"
-            echo "$JSON_PAYLOAD"
-            
-            CREATE_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              -H "Content-Type: application/json" \
-              -d "$JSON_PAYLOAD")
-            
-            echo "Response from Render:"
-            echo "$CREATE_RESPONSE"
-            
-            SERVICE_ID=$(echo "$CREATE_RESPONSE" | jq -r '.id // empty')
-            
-            if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" = "null" ]; then
-              echo "Failed to create service. Full response:"
-              echo "$CREATE_RESPONSE"
-              exit 1
-            fi
-            
-            echo "Created service with ID: $SERVICE_ID"
-            
-            # Wait for service to be ready and get URL
-            echo "Waiting for service to initialize..."
-            sleep 30
-            
-          else
-            echo "Found existing service: $EXISTING_SERVICE"
-            SERVICE_ID="$EXISTING_SERVICE"
-            
-            # Trigger a new deployment
-            echo "Triggering new deployment..."
-            DEPLOY_RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              -H "Content-Type: application/json" \
-              -d '{"clearCache": false}')
-              
-            echo "Deploy response: $DEPLOY_RESPONSE"
-          fi
-          
-          # Get service details and URL
-          echo "Getting service details..."
-          SERVICE_DETAILS=$(curl -s -X GET "https://api.render.com/v1/services/$SERVICE_ID" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
-          
-          echo "Service details response:"
-          echo "$SERVICE_DETAILS"
-          
-          SERVICE_URL=$(echo "$SERVICE_DETAILS" | jq -r '.serviceDetails.url // empty')
-          
-          if [ -z "$SERVICE_URL" ] || [ "$SERVICE_URL" = "null" ]; then
-            # Fallback: construct URL from service name
-            SERVICE_URL="https://$SERVICE_NAME.onrender.com"
-            echo "Using constructed URL: $SERVICE_URL"
-          else
-            echo "Got service URL: $SERVICE_URL"
-          fi
-          
-          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
-          echo "SERVICE_ID=$SERVICE_ID" >> $GITHUB_OUTPUT
-          
-      - name: Wait for deployment to complete
+      - name: Wait and verify deployment
         run: |
-          echo "Waiting for deployment to complete..."
-          sleep 90
+          PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
+          echo "Waiting for deployment to be accessible..."
+          sleep 10
           
           # Check if the URL is accessible
-          PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
-          echo "Checking if $PREVIEW_URL is accessible..."
-          
-          for i in {1..10}; do
-            if curl -s --head "$PREVIEW_URL" | head -n 1 | grep -q "200 OK"; then
-              echo "✅ Preview site is live!"
+          for i in {1..6}; do
+            if curl -s --head "$PREVIEW_URL" | head -n 1 | grep -q "200\|301\|302"; then
+              echo "✅ Preview site is live at $PREVIEW_URL"
               break
             else
-              echo "⏳ Waiting for site to be ready... (attempt $i/10)"
-              sleep 15
+              echo "⏳ Waiting for site to be ready... (attempt $i/6)"
+              sleep 10
             fi
           done
           
@@ -182,24 +91,24 @@ jobs:
         if: success()
         run: |
           PREVIEW_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
-          SERVICE_ID="${{ steps.deploy.outputs.SERVICE_ID }}"
+          PR_NUMBER="${{ steps.deploy.outputs.PR_NUMBER }}"
           
           COMMENT_BODY="🚀 **PR Preview Deployed Successfully!**
 
           📱 **Preview URL:** $PREVIEW_URL
-          🔧 **Service ID:** \`$SERVICE_ID\`
-          🌿 **Branch:** \`${{ github.event.pull_request.head.ref }}\`
+          🌐 **Powered by:** Surge.sh
+          🌿 **Branch:** \`${{ github.head_ref || github.ref_name }}\`
           
           This is a separate preview deployment that won't affect the main site.
           
           ---
           ⚡ The preview will be automatically deleted when this PR is closed."
           
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ] || [ -z "${{ github.event.pull_request.head.repo.full_name }}" ]; then
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments \
+              https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments \
               -d "{\"body\":$(echo "$COMMENT_BODY" | jq -Rs .)}"
           else
             echo "$COMMENT_BODY"
@@ -213,30 +122,20 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Install Surge CLI
+        run: npm install -g surge
         
-      - name: Delete Preview Service
+      - name: Delete Preview Deployment
         run: |
-          SERVICE_NAME="wallgodds-pr-${{ github.event.number }}"
+          PR_NUMBER="${{ github.event.number }}"
+          DOMAIN="wallgodds-pr-$PR_NUMBER.surge.sh"
           
-          echo "Looking for service to delete: $SERVICE_NAME"
+          echo "Deleting Surge deployment: $DOMAIN"
           
-          # Find the service
-          SERVICES_RESPONSE=$(curl -s -X GET "https://api.render.com/v1/services" \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Accept: application/json")
+          # Delete the surge deployment
+          surge teardown "$DOMAIN" --token "${{ secrets.SURGE_TOKEN }}" || echo "Domain may not exist or already deleted"
           
-          SERVICE_ID=$(echo "$SERVICES_RESPONSE" | jq -r --arg name "$SERVICE_NAME" '.[] | select(.name == $name) | .id // empty')
-          
-          if [ ! -z "$SERVICE_ID" ]; then
-            echo "Deleting Render service: $SERVICE_NAME (ID: $SERVICE_ID)"
-            DELETE_RESPONSE=$(curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}")
-            echo "✅ Preview service deleted successfully!"
-          else
-            echo "ℹ️ No preview service found to delete for PR ${{ github.event.number }}"
-          fi
+          echo "✅ Preview deployment cleaned up!"
           
       - name: Comment cleanup completion
         run: |
