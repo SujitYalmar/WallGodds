@@ -15,11 +15,9 @@ import { pageview } from "./utils/analytics";
 function AppContent() {
     const location = useLocation();
 
-    // Track page views only
+    // Track page views - remove DEV check for testing
     useEffect(() => {
-        if (!import.meta.env.DEV) {
-            pageview(location.pathname + location.search);
-        }
+        pageview(location.pathname + location.search);
     }, [location]);
 
     return (

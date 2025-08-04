@@ -3,9 +3,12 @@ export const pageview = (url) => {
     const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
     if (typeof window.gtag !== "undefined" && measurementId) {
+        console.log("GA: Tracking pageview for:", url); // Debug log
         window.gtag("config", measurementId, {
             page_path: url,
         });
+    } else {
+        console.log("GA: gtag not available or no measurement ID");
     }
 };
 
