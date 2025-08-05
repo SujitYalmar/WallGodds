@@ -12,6 +12,9 @@ import useGoogleAnalytics from "./hooks/useGoogleAnalytics";
 import { pageview } from "./utils/analytics";
 // import Footer from "./Components/AboutModule/Footer";
 
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
 function AppContent() {
     const location = useLocation();
 
@@ -21,14 +24,18 @@ function AppContent() {
     }, [location]);
 
     return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/gallery/*" element={<Gallery />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/aboutus" element={<Aboutus />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/*" element={<Error404 />} />
-        </Routes>
+        <>
+            <Analytics />
+            <SpeedInsights />
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/gallery/*" element={<Gallery />} />
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/aboutus" element={<Aboutus />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/*" element={<Error404 />} />
+            </Routes>
+        </>
     );
 }
 
